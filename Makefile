@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview docker-build docker-run docker-compose-up docker-compose-down clean
+.PHONY: help install dev build preview lint docker-build docker-run docker-compose-up docker-compose-down docker-compose-logs clean localstack-start localstack-stop test-localstack release
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -53,3 +53,6 @@ localstack-stop: ## Stop and remove LocalStack
 
 test-localstack: ## Test LocalStack connection
 	@curl -s http://localhost:4566/_localstack/health | jq '.'
+
+release: ## Create a new release (triggers Docker image build and publish)
+	@./release.sh

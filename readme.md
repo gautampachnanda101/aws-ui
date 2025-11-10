@@ -95,6 +95,7 @@ npm run preview
 ### Default Configuration
 
 By default, the application connects to:
+
 - Endpoint: `http://localhost:4566`
 - Region: `us-east-1`
 - Access Key: `test`
@@ -163,7 +164,7 @@ Save this as `config.json` and import it through the Configuration page.
 
 ### Project Structure
 
-```
+```text
 aws-ui/
 ├── src/
 │   ├── components/        # Reusable UI components
@@ -250,6 +251,7 @@ docker run -p 3000:80 localstack-crud-ui
 ### Docker Compose Configuration
 
 The `docker-compose.yml` includes:
+
 - LocalStack with health checks
 - UI application with nginx
 - Proper networking between services
@@ -317,6 +319,39 @@ For more detailed documentation, see the [docs](docs/) folder:
 - **[Project Summary](docs/project-summary.md)** - Complete project overview and architecture
 - **[Test Report](docs/test-report.md)** - Detailed test results and coverage
 - **[E2E Test Summary](docs/e2e-test-summary.md)** - End-to-end test summary
+- **[Release Process](docs/release-process.md)** - How to create releases and publish Docker images
+
+## Releases and Docker Images
+
+### Using Pre-built Docker Images
+
+Pull and run the latest version:
+
+```bash
+# From GitHub Container Registry (recommended)
+docker pull ghcr.io/gautampachnanda101/aws-ui:latest
+docker run -p 3000:80 ghcr.io/gautampachnanda101/aws-ui:latest
+
+# Or specific version
+docker pull ghcr.io/gautampachnanda101/aws-ui:1.0.0
+```
+
+Access the UI at <http://localhost:3000>
+
+### Creating a Release
+
+For maintainers, to create a new release and publish Docker images:
+
+```bash
+# Install GitHub CLI first (one-time)
+brew install gh
+gh auth login
+
+# Create a release (automatically builds and publishes Docker images)
+make release
+```
+
+See the [Release Process Documentation](docs/release-process.md) for detailed instructions.
 
 ## Contributing
 
@@ -333,8 +368,9 @@ MIT License - feel free to use this project for any purpose.
 ## Support
 
 For issues and questions:
+
 - Check the troubleshooting section
-- Review LocalStack documentation: https://docs.localstack.cloud/
+- Review LocalStack documentation: <https://docs.localstack.cloud/>
 - Open an issue on the project repository
 
 ## Acknowledgments

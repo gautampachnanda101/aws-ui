@@ -7,10 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build outputs
 dist
 dist-ssr
+build
 *.local
+
+# Testing
+coverage
+.nyc_output
+*.lcov
 
 # Editor directories and files
 .vscode/*
@@ -22,12 +33,42 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
 
 # Environment files
 .env
 .env.local
 .env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Build files
-build
-coverage
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Cache directories
+.cache
+.parcel-cache
+.vite
+.eslintcache
+.stylelintcache
+
+# Temporary files
+*.tmp
+*.temp
+.tmp
+.temp
+
+# Docker
+.dockerignore
+
+# MkDocs
+site/
