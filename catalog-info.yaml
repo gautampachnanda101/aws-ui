@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: localstack-crud-ui
+  title: LocalStack CRUD UI
+  description: |
+    A comprehensive React + Vite application for managing AWS services through LocalStack
+    with full CRUD operations. Features Google Cloud Logging standards and Docker support.
+  annotations:
+    github.com/project-slug: your-org/localstack-crud-ui
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - localstack
+    - aws
+    - react
+    - typescript
+    - vite
+    - crud
+    - docker
+  links:
+    - url: http://localhost:3000
+      title: Local Development
+      icon: dashboard
+    - url: https://docs.localstack.cloud/
+      title: LocalStack Documentation
+      icon: docs
+spec:
+  type: website
+  lifecycle: production
+  owner: platform-team
+  system: development-tools
+  providesApis: []
+  consumesApis: []
+  dependsOn:
+    - component:localstack

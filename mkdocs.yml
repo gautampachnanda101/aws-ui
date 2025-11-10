@@ -1,0 +1,43 @@
+site_name: LocalStack CRUD UI
+site_description: Comprehensive AWS LocalStack management interface
+docs_dir: docs
+
+nav:
+  - Home: '../readme.md'
+  - Quick Start: 'quickstart.md'
+  - Project Summary: 'project-summary.md'
+  - Testing:
+      - Test Report: 'test-report.md'
+      - E2E Test Summary: 'e2e-test-summary.md'
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.highlight
+    - search.share
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
+  - toc:
+      permalink: true

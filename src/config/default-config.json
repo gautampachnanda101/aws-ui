@@ -1,0 +1,12 @@
+{
+  "localstackInstances": [
+    {
+      "name": "Local Development",
+      "endpoint": "http://localhost:4566",
+      "region": "us-east-1",
+      "accessKeyId": "test",
+      "secretAccessKey": "test"
+    }
+  ],
+  "defaultInstance": "Local Development"
+}
