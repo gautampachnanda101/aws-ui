@@ -128,25 +128,12 @@ main() {
     git push origin "v${NEW_VERSION}"
     print_success "Changes and tag pushed"
 
-    # Get release notes
-    echo ""
-    print_info "Enter release notes (optional):"
-    print_info "Press Ctrl+D when done, or Ctrl+C to skip"
-    RELEASE_NOTES=$(cat)
-
-    # Create GitHub release
-    print_info "Creating GitHub release..."
-    if [[ -n "$RELEASE_NOTES" ]]; then
-        gh release create "v${NEW_VERSION}" \
-            --title "v${NEW_VERSION}" \
-            --notes "$RELEASE_NOTES" \
-            --latest
-    else
-        gh release create "v${NEW_VERSION}" \
-            --title "v${NEW_VERSION}" \
-            --generate-notes \
-            --latest
-    fi
+    # Create GitHub release with auto-generated notes
+    print_info "Creating GitHub release with auto-generated notes from commits..."
+    gh release create "v${NEW_VERSION}" \
+        --title "v${NEW_VERSION}" \
+        --generate-notes \
+        --latest
     print_success "GitHub release created"
 
     echo ""
