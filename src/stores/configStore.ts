@@ -11,6 +11,7 @@ interface ConfigState {
   addInstance: (instance: LocalStackConfig) => void;
   removeInstance: (instanceName: string) => void;
   updateInstance: (instanceName: string, instance: LocalStackConfig) => void;
+  resetToDefaults: () => void;
 }
 
 export const useConfigStore = create<ConfigState>()(
@@ -69,6 +70,16 @@ export const useConfigStore = create<ConfigState>()(
               i.name === instanceName ? instance : i
             ),
           },
+        });
+      },
+
+      resetToDefaults: () => {
+        const defaultInstance = (defaultConfig as AppConfig).localstackInstances.find(
+          (i) => i.name === (defaultConfig as AppConfig).defaultInstance
+        );
+        set({
+          config: defaultConfig as AppConfig,
+          currentInstance: defaultInstance || null,
         });
       },
     }),

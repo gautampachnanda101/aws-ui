@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Plus, Trash2, Save, Upload } from 'lucide-react';
+import { Plus, Trash2, Save, Upload, RotateCcw } from 'lucide-react';
 import { useConfigStore } from '../stores/configStore';
 import { LocalStackConfig } from '../types';
 import { logger } from '../services';
 
 export function ConfigPage() {
-  const { config, currentInstance, addInstance, removeInstance, setCurrentInstance, loadConfig } =
+  const { config, currentInstance, addInstance, removeInstance, setCurrentInstance, loadConfig, resetToDefaults } =
     useConfigStore();
 
   const [newInstance, setNewInstance] = useState<LocalStackConfig>({
@@ -73,6 +73,16 @@ export function ConfigPage() {
     logger.info('Configuration exported successfully');
   };
 
+  const handleResetToDefaults = () => {
+    if (!confirm('Reset to default configuration? This will clear all custom instances and settings.')) {
+      return;
+    }
+    logger.info('Resetting configuration to defaults');
+    resetToDefaults();
+    logger.info('Configuration reset successfully');
+    alert('Configuration reset to defaults. Please refresh the page.');
+  };
+
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Configuration</h1>
@@ -125,12 +135,15 @@ export function ConfigPage() {
             ))}
           </div>
 
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button onClick={handleExportJson}>
               <Save size={16} /> Export Config
             </button>
             <button onClick={() => setShowJsonImport(!showJsonImport)}>
               <Upload size={16} /> Import Config
+            </button>
+            <button className="btn-danger" onClick={handleResetToDefaults}>
+              <RotateCcw size={16} /> Reset to Defaults
             </button>
           </div>
         </div>
