@@ -31,4 +31,6 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+# Suppress startup logs by redirecting stderr to /dev/null
+# Errors during operation are still logged to /var/log/nginx/error.log
+CMD ["sh", "-c", "nginx -g 'daemon off;' 2>/dev/null"]
