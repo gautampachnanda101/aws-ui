@@ -84,6 +84,7 @@ jobs:
             -e SERVICES=s3,dynamodb,sqs,sns,lambda \
             -e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
             -e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+            -v /var/run/docker.sock:/var/run/docker.sock \
             localstack/localstack:latest
 
           echo "Waiting for LocalStack to be ready..."
