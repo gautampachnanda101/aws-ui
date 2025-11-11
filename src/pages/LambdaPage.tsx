@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Plus, Play, Code } from 'lucide-react';
+import JSZip from 'jszip';
 import { useConfigStore } from '../stores/configStore';
 import { AWSClientFactory, LambdaService, logger } from '../services';
 import { LambdaFunction } from '../types';
@@ -93,13 +94,17 @@ exports.handler = async (event) => {
     };
 };
 `;
-      const zipBuffer = new TextEncoder().encode(code);
+      
+      // Create a proper ZIP file using JSZip
+      const zip = new JSZip();
+      zip.file('index.js', code);
+      const zipBlob = await zip.generateAsync({ type: 'uint8array' });
 
       await lambdaService.createFunction(
         newFunctionName,
         'nodejs18.x',
         'index.handler',
-        zipBuffer,
+        zipBlob,
         'arn:aws:iam::000000000000:role/lambda-role',
         'Created via LocalStack UI'
       );
@@ -295,6 +300,7 @@ exports.handler = async (event) => {
                     className="btn-success"
                     onClick={handleInvokeFunction}
                     disabled={loading}
+                    aria-label="Invoke function"
                   >
                     <Play size={16} />
                   </button>

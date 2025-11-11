@@ -253,6 +253,7 @@ export function SQSPage() {
                   className="btn-success"
                   onClick={handleSendMessage}
                   disabled={loading || !messageBody.trim()}
+                  aria-label="Send message"
                 >
                   <Send size={16} />
                 </button>

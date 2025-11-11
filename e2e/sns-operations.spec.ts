@@ -73,7 +73,7 @@ test.describe('SNS Operations', () => {
     // Create subscription
     await page.selectOption('select', 'email');
     await page.fill('input[placeholder="Endpoint"]', endpoint);
-    await page.locator('div:has(input[placeholder="Endpoint"])').getByRole('button').first().click();
+    await page.getByRole('button', { name: /add subscription/i }).click();
 
     // Verify subscription appears
     await expect(page.getByText(endpoint)).toBeVisible({ timeout: 10000 });

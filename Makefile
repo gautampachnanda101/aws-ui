@@ -45,6 +45,7 @@ localstack-start: ## Start LocalStack with CORS for local development
 		-e SERVICES=s3,dynamodb,sqs,sns,lambda \
 		-e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000 \
 		-e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		localstack/localstack:latest
 
 localstack-stop: ## Stop and remove LocalStack
@@ -66,6 +67,7 @@ e2e-setup: ## Build Docker image and start containers for E2E testing
 		-e SERVICES=s3,dynamodb,sqs,sns,lambda \
 		-e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
 		-e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		localstack/localstack:latest
 	@echo "Waiting for LocalStack to be ready..."
 	@timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1; do sleep 2; done' || (echo "LocalStack failed to start" && exit 1)

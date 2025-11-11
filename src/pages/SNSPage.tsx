@@ -307,6 +307,7 @@ export function SNSPage() {
                     className="btn-success"
                     onClick={handlePublish}
                     disabled={loading || !messageText.trim()}
+                    aria-label="Send message"
                   >
                     <Send size={16} />
                   </button>
@@ -339,6 +340,7 @@ export function SNSPage() {
                     className="btn-primary"
                     onClick={handleSubscribe}
                     disabled={loading || !newSubEndpoint.trim()}
+                    aria-label="Add subscription"
                   >
                     <Plus size={16} />
                   </button>
