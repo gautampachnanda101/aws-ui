@@ -13,6 +13,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -51,3 +53,104 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+
+  validate:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      packages: read
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start LocalStack
+        run: |
+          docker run -d --name localstack \
+            -p 4566:4566 \
+            -e SERVICES=s3,dynamodb,sqs,sns,lambda \
+            -e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
+            -e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+            localstack/localstack:latest
+
+      - name: Wait for LocalStack to be ready
+        run: |
+          echo "Waiting for LocalStack to start..."
+          timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health > /dev/null; do sleep 2; done'
+          echo "LocalStack is ready"
+          curl -s http://localhost:4566/_localstack/health | jq '.'
+
+      - name: Pull and run published image
+        run: |
+          IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+          echo "Testing image: ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
+
+          docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
+
+          docker run -d --name localstack-ui \
+            -p 3000:80 \
+            ghcr.io/${{ github.repository }}:${IMAGE_TAG}
+
+      - name: Wait for UI to be ready
+        run: |
+          echo "Waiting for UI to start..."
+          timeout 30 bash -c 'until curl -s http://localhost:3000/health > /dev/null; do sleep 2; done'
+          echo "UI is ready"
+
+      - name: Validate UI health endpoint
+        run: |
+          HEALTH_RESPONSE=$(curl -s http://localhost:3000/health)
+          echo "Health check response: $HEALTH_RESPONSE"
+          if [ "$HEALTH_RESPONSE" != "healthy" ]; then
+            echo "Health check failed!"
+            exit 1
+          fi
+          echo "✓ Health check passed"
+
+      - name: Validate UI loads
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
+          echo "UI HTTP response code: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "UI failed to load!"
+            exit 1
+          fi
+
+          # Check if the response contains expected content
+          RESPONSE=$(curl -s http://localhost:3000)
+          if echo "$RESPONSE" | grep -q "LocalStack CRUD UI"; then
+            echo "✓ UI loaded successfully"
+          else
+            echo "UI content validation failed!"
+            exit 1
+          fi
+
+      - name: Validate LocalStack connectivity
+        run: |
+          # Check if LocalStack health endpoint is accessible from UI's perspective
+          LOCALSTACK_HEALTH=$(curl -s http://localhost:4566/_localstack/health)
+          if echo "$LOCALSTACK_HEALTH" | jq -e '.services.dynamodb' > /dev/null; then
+            echo "✓ LocalStack services are accessible"
+          else
+            echo "LocalStack connectivity failed!"
+            exit 1
+          fi
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== LocalStack Logs ==="
+          docker logs localstack || true
+          echo ""
+          echo "=== UI Logs ==="
+          docker logs localstack-ui || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop localstack-ui localstack || true
+          docker rm localstack-ui localstack || true
