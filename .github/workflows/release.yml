@@ -74,7 +74,10 @@ jobs:
       - name: Pull published image
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
-          echo "Testing image: ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
+          echo "==========================================="
+          echo "Testing PUBLISHED release image:"
+          echo "  ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
+          echo "==========================================="
           docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
 
       - name: Start LocalStack
@@ -94,6 +97,7 @@ jobs:
       - name: Start UI container
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+          echo "Starting UI with published image: ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
           docker run -d --name localstack-ui \
             -p 3000:80 \
             ghcr.io/${{ github.repository }}:${IMAGE_TAG}
