@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview lint docker-build docker-run docker-compose-up docker-compose-down docker-compose-logs clean localstack-start localstack-stop test-localstack release
+.PHONY: help install dev build preview lint docker-build docker-run docker-compose-up docker-compose-down docker-compose-logs clean localstack-start localstack-stop test-localstack release e2e-setup e2e-test e2e-cleanup e2e e2e-headed
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -56,3 +56,62 @@ test-localstack: ## Test LocalStack connection
 
 release: ## Create a new release (triggers Docker image build and publish)
 	@./release.sh
+
+e2e-setup: ## Build Docker image and start containers for E2E testing
+	@echo "Building Docker image..."
+	docker build -t localstack-crud-ui:e2e .
+	@echo "Starting LocalStack..."
+	docker run -d --name localstack-e2e \
+		-p 4566:4566 \
+		-e SERVICES=s3,dynamodb,sqs,sns,lambda \
+		-e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
+		-e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+		localstack/localstack:latest
+	@echo "Waiting for LocalStack to be ready..."
+	@timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1; do sleep 2; done' || (echo "LocalStack failed to start" && exit 1)
+	@echo "LocalStack is ready!"
+	@echo "Starting UI container..."
+	docker run -d --name localstack-ui-e2e \
+		-p 3000:80 \
+		localstack-crud-ui:e2e
+	@echo "Waiting for UI to be ready..."
+	@timeout 30 bash -c 'until curl -s http://localhost:3000/health > /dev/null 2>&1; do sleep 2; done' || (echo "UI failed to start" && exit 1)
+	@echo "UI is ready!"
+	@echo "✓ E2E environment is ready for testing"
+
+e2e-test: ## Run Playwright E2E tests with screenshots
+	@echo "Running E2E tests..."
+	npm run test:e2e
+	@echo "✓ E2E tests completed"
+
+e2e-cleanup: ## Stop and remove E2E test containers
+	@echo "Cleaning up E2E containers..."
+	@docker stop localstack-ui-e2e localstack-e2e 2>/dev/null || true
+	@docker rm localstack-ui-e2e localstack-e2e 2>/dev/null || true
+	@docker rmi localstack-crud-ui:e2e 2>/dev/null || true
+	@echo "✓ Cleanup complete"
+
+e2e: ## Run full E2E test suite (build, start containers, test, cleanup)
+	@echo "========================================"
+	@echo "  Starting Full E2E Test Suite"
+	@echo "========================================"
+	@$(MAKE) e2e-cleanup 2>/dev/null || true
+	@$(MAKE) e2e-setup
+	@$(MAKE) e2e-test || (echo "Tests failed!" && $(MAKE) e2e-cleanup && exit 1)
+	@$(MAKE) e2e-cleanup
+	@echo "========================================"
+	@echo "  E2E Test Suite Completed Successfully"
+	@echo "========================================"
+	@echo ""
+	@echo "Test reports available at:"
+	@echo "  - playwright-report/ (HTML report)"
+	@echo "  - test-results/ (screenshots and traces)"
+	@echo ""
+	@echo "To view the report, run: npx playwright show-report"
+
+e2e-headed: ## Run E2E tests in headed mode (visible browser)
+	@echo "Running E2E tests in headed mode..."
+	@$(MAKE) e2e-cleanup 2>/dev/null || true
+	@$(MAKE) e2e-setup
+	npm run test:e2e:headed || ($(MAKE) e2e-cleanup && exit 1)
+	@$(MAKE) e2e-cleanup
