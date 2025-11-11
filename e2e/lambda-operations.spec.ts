@@ -39,13 +39,14 @@ test.describe('Lambda Operations', () => {
     await expect(page.locator('textarea[placeholder*="key"]')).toBeVisible({ timeout: 5000 });
 
     // Wait for function to become active (Lambda functions are created asynchronously)
-    await page.waitForTimeout(5000);
+    // CI environments can be slower, so we use a longer timeout
+    await page.waitForTimeout(8000);
 
     // Invoke function with default payload
     await page.getByRole('button', { name: /invoke/i }).click();
 
     // Wait for result with longer timeout
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(6000);
 
     // Verify result appears - check for the result container instead
     const resultHeading = page.getByRole('heading', { name: /result/i, level: 4 });
@@ -68,7 +69,8 @@ test.describe('Lambda Operations', () => {
     await expect(page.locator('textarea[placeholder*="key"]')).toBeVisible({ timeout: 5000 });
 
     // Wait for function to become active (Lambda functions are created asynchronously)
-    await page.waitForTimeout(5000);
+    // CI environments can be slower, so we use a longer timeout
+    await page.waitForTimeout(8000);
 
     // Clear and fill custom payload
     await page.fill('textarea[placeholder*="key"]', customPayload);
@@ -77,7 +79,7 @@ test.describe('Lambda Operations', () => {
     await page.getByRole('button', { name: /invoke/i }).click();
 
     // Wait for result
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(6000);
 
     // Verify result appears - check for the result heading
     const resultHeading = page.getByRole('heading', { name: /result/i, level: 4 });
