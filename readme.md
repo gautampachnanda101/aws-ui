@@ -27,16 +27,18 @@ A comprehensive React + Vite application for managing AWS services through Local
   - Manage subscriptions
 
 - **Lambda**: Function deployment and invocation
-  - Create/delete functions
-  - Invoke functions
-  - View function details
+  - Create/delete functions with JavaScript code
+  - Invoke functions with custom JSON payloads
+  - View function details and execution results
+  - Automatic ZIP packaging using JSZip
 
 ### Additional Features
 
 - Multi-instance configuration support
 - JSON-based configuration import/export
 - Google Cloud Logging standard structured logging
-- Docker containerization
+- Docker containerization with Lambda execution support
+- Comprehensive end-to-end testing with Playwright
 - Responsive UI with dark mode support
 - Real-time operation feedback
 
@@ -160,7 +162,9 @@ Save this as `config.json` and import it through the Configuration page.
 - **AWS SDK**: AWS SDK v3 for JavaScript
 - **Routing**: React Router v6
 - **Icons**: Lucide React
-- **Containerization**: Docker + Docker Compose
+- **File Processing**: JSZip for Lambda function packaging
+- **Testing**: Playwright for end-to-end testing
+- **Containerization**: Docker + Docker Compose with Lambda execution support
 
 ### Project Structure
 
@@ -270,6 +274,48 @@ The `docker-compose.yml` includes:
 - `npm run build`: Build for production
 - `npm run preview`: Preview production build
 - `npm run lint`: Run ESLint
+- `npm run test`: Run unit tests
+- `make e2e-test`: Run end-to-end tests with Playwright
+- `make e2e-setup`: Set up LocalStack for e2e testing
+- `make e2e-cleanup`: Clean up e2e test environment
+
+### End-to-End Testing
+
+The application includes comprehensive e2e tests using Playwright that validate all AWS service operations:
+
+```bash
+# Run all e2e tests
+make e2e-test
+
+# Or step by step
+make e2e-cleanup    # Clean up any previous test environment
+make e2e-setup      # Start fresh LocalStack container for testing
+make e2e-test       # Run Playwright tests
+```
+
+**Test Coverage:**
+
+- S3 operations (35 tests total including):
+  - Bucket creation and deletion
+  - Object upload and download
+  - Object deletion
+- DynamoDB operations:
+  - Table creation and deletion
+  - Item CRUD operations
+- SQS operations:
+  - Queue management
+  - Message send/receive/delete
+- SNS operations:
+  - Topic management
+  - Message publishing
+  - Subscription management
+- Lambda operations:
+  - Function creation with automatic ZIP packaging
+  - Function invocation with default and custom payloads
+  - Function deletion
+- UI navigation and configuration
+
+See [E2E Test Summary](docs/e2e-test-summary.md) for detailed test results.
 
 ### Adding New Services
 
