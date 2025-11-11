@@ -14,15 +14,12 @@ test.describe('DynamoDB Operations', () => {
   test('should create a new DynamoDB table', async ({ page }) => {
     const tableName = `TestE2ETable${Date.now()}`;
 
-    // Click create table button
-    await page.getByRole('button', { name: /create|new/i }).first().click();
-
     // Fill table details
-    await page.fill('input[name="tableName"], input[placeholder*="table" i]', tableName);
-    await page.fill('input[name="partitionKey"], input[placeholder*="partition" i]', 'id');
+    await page.fill('input[placeholder="Table name"]', tableName);
+    await page.fill('input[placeholder="Primary key name"]', 'id');
 
-    // Submit form
-    await page.getByRole('button', { name: /create|save/i }).click();
+    // Click create table button
+    await page.getByRole('button', { name: /create table/i }).click();
 
     // Verify table appears in list
     await expect(page.getByText(tableName)).toBeVisible({ timeout: 15000 });
@@ -32,16 +29,15 @@ test.describe('DynamoDB Operations', () => {
     const tableName = `TestViewTable${Date.now()}`;
 
     // Create table
-    await page.getByRole('button', { name: /create|new/i }).first().click();
-    await page.fill('input[name="tableName"], input[placeholder*="table" i]', tableName);
-    await page.fill('input[name="partitionKey"], input[placeholder*="partition" i]', 'id');
-    await page.getByRole('button', { name: /create|save/i }).click();
+    await page.fill('input[placeholder="Table name"]', tableName);
+    await page.fill('input[placeholder="Primary key name"]', 'id');
+    await page.getByRole('button', { name: /create table/i }).click();
     await expect(page.getByText(tableName)).toBeVisible({ timeout: 15000 });
 
     // Click to view table
     await page.getByText(tableName).click();
 
-    // Should show items page (even if empty)
-    await expect(page.locator('text=/items|data|records/i')).toBeVisible({ timeout: 10000 });
+    // Should show items section (look for "Items" heading or "No items found" text)
+    await expect(page.locator('h2:has-text("Items")')).toBeVisible({ timeout: 10000 });
   });
 });

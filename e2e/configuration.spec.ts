@@ -12,7 +12,7 @@ test.describe('Configuration', () => {
   });
 
   test('should show default LocalStack instance', async ({ page }) => {
-    await expect(page.getByText(/Local Development/i)).toBeVisible();
+    await expect(page.getByText(/Local Development/i).first()).toBeVisible();
     await expect(page.getByText(/localhost:4566/i)).toBeVisible();
   });
 

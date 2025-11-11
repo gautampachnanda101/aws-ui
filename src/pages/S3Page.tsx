@@ -240,6 +240,7 @@ export function S3Page() {
               className="btn-primary"
               onClick={handleCreateBucket}
               disabled={loading || !newBucketName.trim()}
+              aria-label="Create bucket"
             >
               <Plus size={16} />
             </button>

@@ -16,14 +16,11 @@ test.describe('S3 Operations', () => {
   test('should create a new S3 bucket', async ({ page }) => {
     const bucketName = `test-e2e-bucket-${Date.now()}`;
 
+    // Fill bucket name in the input field
+    await page.fill('input[placeholder="Bucket name"]', bucketName);
+
     // Click create bucket button
-    await page.getByRole('button', { name: /create|new/i }).first().click();
-
-    // Fill bucket name
-    await page.fill('input[name="bucketName"], input[placeholder*="bucket" i]', bucketName);
-
-    // Submit form
-    await page.getByRole('button', { name: /create|save/i }).click();
+    await page.getByRole('button', { name: /create/i }).click();
 
     // Verify bucket appears in list
     await expect(page.getByText(bucketName)).toBeVisible({ timeout: 10000 });
@@ -33,16 +30,16 @@ test.describe('S3 Operations', () => {
     const bucketName = `test-delete-bucket-${Date.now()}`;
 
     // Create bucket first
-    await page.getByRole('button', { name: /create|new/i }).first().click();
-    await page.fill('input[name="bucketName"], input[placeholder*="bucket" i]', bucketName);
-    await page.getByRole('button', { name: /create|save/i }).click();
+    await page.fill('input[placeholder="Bucket name"]', bucketName);
+    await page.getByRole('button', { name: /create/i }).click();
     await expect(page.getByText(bucketName)).toBeVisible({ timeout: 10000 });
 
-    // Delete the bucket
-    await page.locator(`text=${bucketName}`).locator('..').getByRole('button', { name: /delete/i }).click();
-
-    // Confirm deletion
+    // Set up dialog handler before clicking delete
     page.once('dialog', dialog => dialog.accept());
+
+    // Delete the bucket - find the parent container and get the delete button
+    const bucketRow = page.locator(`div:has-text("${bucketName}")`).filter({ hasText: new RegExp(`^${bucketName}$`) });
+    await bucketRow.getByRole('button').click();
 
     // Verify bucket is removed
     await expect(page.getByText(bucketName)).not.toBeVisible({ timeout: 10000 });

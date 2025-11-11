@@ -14,11 +14,18 @@ interface ConfigState {
   resetToDefaults: () => void;
 }
 
+const getDefaultInstance = (): LocalStackConfig | null => {
+  const config = defaultConfig as AppConfig;
+  return config.localstackInstances.find(
+    (i) => i.name === config.defaultInstance
+  ) || null;
+};
+
 export const useConfigStore = create<ConfigState>()(
   persist(
     (set, get) => ({
       config: defaultConfig as AppConfig,
-      currentInstance: null,
+      currentInstance: getDefaultInstance(),
 
       loadConfig: (config: AppConfig) => {
         set({ config });
@@ -88,9 +95,3 @@ export const useConfigStore = create<ConfigState>()(
     }
   )
 );
-
-// Initialize with default config on first load
-const store = useConfigStore.getState();
-if (!store.currentInstance && store.config.localstackInstances.length > 0) {
-  store.setCurrentInstance(store.config.defaultInstance);
-}
