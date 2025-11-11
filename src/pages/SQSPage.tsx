@@ -187,6 +187,7 @@ export function SQSPage() {
               className="btn-primary"
               onClick={handleCreateQueue}
               disabled={loading || !newQueueName.trim()}
+              aria-label="Create queue"
             >
               <Plus size={16} />
             </button>

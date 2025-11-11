@@ -231,6 +231,7 @@ export function SNSPage() {
               className="btn-primary"
               onClick={handleCreateTopic}
               disabled={loading || !newTopicName.trim()}
+              aria-label="Create topic"
             >
               <Plus size={16} />
             </button>

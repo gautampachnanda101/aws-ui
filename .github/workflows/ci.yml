@@ -106,7 +106,43 @@ jobs:
             --table-name test-table \
             --item '{"id": {"S": "test-2"}, "name": {"S": "Test Item 2"}, "value": {"N": "200"}}'
 
-          echo "✓ Test data seeded successfully"
+          echo "Seeding SQS test data..."
+          QUEUE_URL=$(aws --endpoint-url=http://localhost:4566 sqs create-queue \
+            --queue-name test-queue \
+            --query 'QueueUrl' \
+            --output text)
+
+          aws --endpoint-url=http://localhost:4566 sqs send-message \
+            --queue-url $QUEUE_URL \
+            --message-body "Test message 1"
+
+          aws --endpoint-url=http://localhost:4566 sqs send-message \
+            --queue-url $QUEUE_URL \
+            --message-body "Test message 2"
+
+          echo "Seeding SNS test data..."
+          TOPIC_ARN=$(aws --endpoint-url=http://localhost:4566 sns create-topic \
+            --name test-topic \
+            --query 'TopicArn' \
+            --output text)
+
+          aws --endpoint-url=http://localhost:4566 sns subscribe \
+            --topic-arn $TOPIC_ARN \
+            --protocol email \
+            --notification-endpoint test@example.com
+
+          echo "Seeding Lambda test data..."
+          echo 'exports.handler = async (event) => { return { statusCode: 200, body: JSON.stringify({ message: "Test Lambda" }) }; };' > /tmp/index.js
+          cd /tmp && zip lambda.zip index.js
+
+          aws --endpoint-url=http://localhost:4566 lambda create-function \
+            --function-name test-function \
+            --runtime nodejs18.x \
+            --role arn:aws:iam::000000000000:role/lambda-role \
+            --handler index.handler \
+            --zip-file fileb:///tmp/lambda.zip
+
+          echo "✓ Test data seeded successfully for all services"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

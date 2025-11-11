@@ -208,6 +208,7 @@ exports.handler = async (event) => {
               className="btn-primary"
               onClick={handleCreateFunction}
               disabled={loading || !newFunctionName.trim()}
+              aria-label="Create function"
             >
               <Plus size={16} />
             </button>
