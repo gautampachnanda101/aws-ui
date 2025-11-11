@@ -28,6 +28,21 @@ make e2e-cleanup
 make e2e-headed
 ```
 
+### CI/CD Commands
+
+These commands are designed for CI environments where the Docker image is already built or pulled:
+
+```bash
+# Start containers using pre-built image (for CI)
+make e2e-ci-setup DOCKER_IMAGE=ghcr.io/owner/repo:tag
+
+# Run E2E tests
+make e2e-test
+
+# Cleanup CI containers
+make e2e-ci-cleanup
+```
+
 ### Manual Testing
 
 ```bash
@@ -79,13 +94,18 @@ npx playwright show-report
 
 ## CI/CD
 
-E2E tests run automatically in GitHub Actions on every release:
+E2E tests run automatically in GitHub Actions on:
+- Every release (when a new version is published)
+- Every push to the main branch
 
-1. Published Docker image is pulled
-2. LocalStack is started with CORS configured
-3. UI container is started
-4. Playwright tests run against the live environment
-5. Test reports are uploaded as artifacts
+The workflow:
+1. Builds and publishes Docker image (on release) or uses existing image (on push)
+2. Pulls the published image
+3. Starts LocalStack with CORS configured using `make e2e-ci-setup`
+4. Validates AWS service operations (S3, DynamoDB, SQS, SNS)
+5. Runs Playwright E2E tests using `make e2e-test`
+6. Uploads test reports as artifacts
+7. Cleans up using `make e2e-ci-cleanup`
 
 ## Configuration
 

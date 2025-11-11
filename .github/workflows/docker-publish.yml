@@ -3,6 +3,9 @@ name: Docker Image Publishing
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - main
 
 env:
   IMAGE_NAME: localstack-crud-ui
@@ -68,38 +71,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Start LocalStack
-        run: |
-          docker run -d --name localstack \
-            -p 4566:4566 \
-            -e SERVICES=s3,dynamodb,sqs,sns,lambda \
-            -e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
-            -e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
-            localstack/localstack:latest
+      - name: Checkout repository for make tasks
+        uses: actions/checkout@v4
 
-      - name: Wait for LocalStack to be ready
-        run: |
-          echo "Waiting for LocalStack to start..."
-          timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health > /dev/null; do sleep 2; done'
-          echo "LocalStack is ready"
-          curl -s http://localhost:4566/_localstack/health | jq '.'
-
-      - name: Pull and run published image
+      - name: Pull published image
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
           echo "Testing image: ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
-
           docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
 
-          docker run -d --name localstack-ui \
-            -p 3000:80 \
-            ghcr.io/${{ github.repository }}:${IMAGE_TAG}
+      - name: Start containers for E2E testing
+        run: make e2e-ci-setup DOCKER_IMAGE=ghcr.io/${{ github.repository }}:${{ needs.build-and-push.outputs.image-tag }}
 
-      - name: Wait for UI to be ready
+      - name: Verify LocalStack health
         run: |
-          echo "Waiting for UI to start..."
-          timeout 30 bash -c 'until curl -s http://localhost:3000/health > /dev/null; do sleep 2; done'
-          echo "UI is ready"
+          echo "LocalStack health check:"
+          curl -s http://localhost:4566/_localstack/health | jq '.'
 
       - name: Validate UI health endpoint
         run: |
@@ -317,9 +304,6 @@ jobs:
             --topic-arn "$TOPIC_ARN"
           echo "✓ SNS topic deleted"
 
-      - name: Checkout repository for E2E tests
-        uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -333,9 +317,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E tests
-        run: npm run test:e2e
-        env:
-          CI: true
+        run: make e2e-test
 
       - name: Upload Playwright test results
         if: always()
@@ -378,6 +360,4 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: |
-          docker stop localstack-ui localstack || true
-          docker rm localstack-ui localstack || true
+        run: make e2e-ci-cleanup

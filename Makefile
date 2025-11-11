@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview lint docker-build docker-run docker-compose-up docker-compose-down docker-compose-logs clean localstack-start localstack-stop test-localstack release e2e-setup e2e-test e2e-cleanup e2e e2e-headed
+.PHONY: help install dev build preview lint docker-build docker-run docker-compose-up docker-compose-down docker-compose-logs clean localstack-start localstack-stop test-localstack release e2e-setup e2e-test e2e-cleanup e2e e2e-headed e2e-ci-setup e2e-ci-cleanup
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -115,3 +115,29 @@ e2e-headed: ## Run E2E tests in headed mode (visible browser)
 	@$(MAKE) e2e-setup
 	npm run test:e2e:headed || ($(MAKE) e2e-cleanup && exit 1)
 	@$(MAKE) e2e-cleanup
+
+e2e-ci-setup: ## Start containers for CI E2E testing (assumes image already available)
+	@echo "Starting LocalStack for CI..."
+	docker run -d --name localstack \
+		-p 4566:4566 \
+		-e SERVICES=s3,dynamodb,sqs,sns,lambda \
+		-e EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:3000 \
+		-e 'EXTRA_CORS_ALLOWED_HEADERS=*' \
+		localstack/localstack:latest
+	@echo "Waiting for LocalStack to be ready..."
+	@timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1; do sleep 2; done' || (echo "LocalStack failed to start" && exit 1)
+	@echo "LocalStack is ready!"
+	@echo "Starting UI container from published image..."
+	docker run -d --name localstack-ui \
+		-p 3000:80 \
+		$(DOCKER_IMAGE)
+	@echo "Waiting for UI to be ready..."
+	@timeout 30 bash -c 'until curl -s http://localhost:3000/health > /dev/null 2>&1; do sleep 2; done' || (echo "UI failed to start" && exit 1)
+	@echo "UI is ready!"
+	@echo "✓ CI E2E environment is ready for testing"
+
+e2e-ci-cleanup: ## Stop and remove CI E2E test containers
+	@echo "Cleaning up CI E2E containers..."
+	@docker stop localstack-ui localstack 2>/dev/null || true
+	@docker rm localstack-ui localstack 2>/dev/null || true
+	@echo "✓ CI cleanup complete"
