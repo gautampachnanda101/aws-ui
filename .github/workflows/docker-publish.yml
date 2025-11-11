@@ -121,7 +121,7 @@ jobs:
           echo "Testing CORS headers..."
           CORS_HEADERS=$(curl -s -I http://localhost:4566/ -H "Origin: http://localhost:3000" | grep -i "access-control")
 
-          if echo "$CORS_HEADERS" | grep -q "access-control-allow-origin: http://localhost:3000"; then
+          if echo "$CORS_HEADERS" | grep -qi "access-control-allow-origin: http://localhost:3000"; then
             echo "✓ CORS headers correctly configured"
             echo "$CORS_HEADERS"
           else
